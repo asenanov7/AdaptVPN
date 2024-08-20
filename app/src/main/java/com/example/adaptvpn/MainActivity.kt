@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -15,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.w3c.dom.Text
 import java.util.Date
 
 class MainActivity : AppCompatActivity() {
@@ -31,42 +33,10 @@ class MainActivity : AppCompatActivity() {
 
         startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
 
-        startLoggingAppLaunches()
+        findViewById<TextView>(R.id.greeting).setOnClickListener { startService(Intent(this, AdaptVpnService::class.java)) }
 
     }
 
-    fun startLoggingAppLaunches() {
-        // Запускаем корутину, которая будет выполняться каждые 5 секунд
-        CoroutineScope(Dispatchers.IO).launch {
-            while (true) {
-                Log.d("ARSEN", "try new check")
-                logAppLaunches()
-                delay(5000) // Ждём 5 секунд
-            }
-        }
-    }
 
-    // Функция для логирования запусков приложений за последние 5 секунд
-    private fun logAppLaunches() {
-        val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-
-        val endTime = System.currentTimeMillis()
-        val startTime = endTime - 5000 // последние 5 секунд
-
-        val usageEvents = usageStatsManager.queryEvents(startTime, endTime)
-
-        val event = UsageEvents.Event()
-        while (usageEvents.hasNextEvent()) {
-            usageEvents.getNextEvent(event)
-            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
-                Log.d("ARSEN", "App launched: ${event.packageName} at ${Date(event.timeStamp)}")
-            }
-        }
-    }
-
-    companion object{
-        const val INSTAGRAM = "com.instagram.android"
-        const val YOUTUBE = "com.google.android.youtube"
-    }
 
 }
