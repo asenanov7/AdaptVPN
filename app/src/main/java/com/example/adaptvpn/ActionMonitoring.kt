@@ -7,41 +7,46 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class ActionMonitoring(private val context: Context) {
 
     private val monitoringList = listOf(INSTAGRAM, YOUTUBE)
-    private var isVPNRunning = false
+
+    private var isVPNRunning = MutableStateFlow(false)
 
     fun startLoggingAppLaunches() {
-        // Запускаем корутину, которая будет выполняться каждые 5 секунд
         CoroutineScope(Dispatchers.IO).launch {
             while (true) {
                 logAppLaunches()
-                delay(5000) // Ждём 5 секунд
+                delay(1000) // Ждём 5 секунд
+            }
+        }
+
+        CoroutineScope(Dispatchers.Main).launch {
+            isVPNRunning.collectLatest {
+                Log.d("ARSEN", "VPN $it")
             }
         }
     }
 
-    // Функция для логирования запусков приложений за последние 5 секунд
     private fun logAppLaunches() {
         val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
         val endTime = System.currentTimeMillis()
-        val startTime = endTime - 4000 // последние 4 секунды
+        val startTime = endTime - 2000
 
         val usageEvents = usageStatsManager.queryEvents(startTime, endTime)
 
         val event = UsageEvents.Event()
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(event)
-            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED && monitoringList.contains(event.packageName)) {
-                isVPNRunning = true
-                Log.d("ARSEN", "VPN ON")
-            } else if (event.eventType == UsageEvents.Event.ACTIVITY_PAUSED && isVPNRunning) {
-                isVPNRunning = false
-                Log.d("ARSEN", "VPN OFF")
+            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED && monitoringList.contains(event.packageName) && isVPNRunning.value.not()) {
+                isVPNRunning.value = true
+            } else if (event.eventType == UsageEvents.Event.ACTIVITY_PAUSED && isVPNRunning.value) {
+                isVPNRunning.value = false
             }
 
         }
