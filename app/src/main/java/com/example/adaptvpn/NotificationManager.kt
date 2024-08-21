@@ -14,8 +14,8 @@ class NotificationManager(
     fun createNotification(): Notification {
         createChannel()
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("asasdsdadasd")
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle(context.getString(R.string.notification_title))
+            .setSmallIcon(R.drawable.baseline_vpn_key_24)
             .build()
     }
 
@@ -28,8 +28,8 @@ class NotificationManager(
 
     companion object {
 
-        const val CHANNEL_ID = "WAKE_UP_CHANNEL_ID"
-        const val CHANNEL_NAME = "WAKE_UP_CHANNEL_NAME"
+        const val CHANNEL_ID = "ADAPT_VPN_CHANNEL_ID"
+        const val CHANNEL_NAME = "ADAPT_VPN_CHANNEL_NAME"
 
     }
 
